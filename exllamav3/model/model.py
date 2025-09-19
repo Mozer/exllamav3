@@ -88,14 +88,32 @@ class Model(Model_TPMixin, Model_LSMixin):
 
 
     @torch.inference_mode
-    def forward(self, input_ids: torch.Tensor, params: dict | None = None):
+    def forward(self,
+                input_ids: torch.Tensor | None,
+                params: dict | None = None,
+                inputs_embeds: torch.Tensor | None = None) -> tuple[torch.Tensor, torch.Tensor]:
         if params is None:
             params = {}
-        x = self.prepare_inputs(input_ids, params)
+
+        if input_ids is None and inputs_embeds is None:
+            raise ValueError("You must specify either input_ids or inputs_embeds")
+
+        # The `prepare_inputs` call is essential for setting up attention parameters.
+        # It needs a tensor with the correct batch_size and sequence_length for shape inference.
+        ref_ids = input_ids
+        if ref_ids is None:
+            ref_ids = torch.zeros(inputs_embeds.shape[:2], dtype=torch.long, device=inputs_embeds.device)
+
+        _ = self.prepare_inputs(ref_ids, params)
+
+        is_embeds = inputs_embeds is not None
+        x = inputs_embeds if is_embeds else input_ids
+
         if self.loaded_tp:
-            return self.forward_tp(x, params, self.last_kv_module_idx, self.modules)
+            # Note: forward_tp would require similar changes if you use tensor parallelism
+            return self.forward_tp(x, params, self.last_kv_module_idx, self.modules, is_embeds=is_embeds)
         else:
-            return self.forward_ls(x, params, self.last_kv_module_idx, self.modules)
+            return self.forward_ls(x, params, self.last_kv_module_idx, self.modules, is_embeds=is_embeds)
 
 
     def unload(self):
