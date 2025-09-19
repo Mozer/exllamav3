@@ -1,6 +1,14 @@
 
 # <img src="doc/cat.png" width="40"> ExLlamaV3
 
+## info for vibevoice:
+
+- I modified v0.0.6 and added inputs_embeds as input and last_hidden_state as output. They are needed for vibevoice.
+- To install: install v0.0.6 compiled wheel from original repo: https://github.com/turboderp-org/exllamav3/releases/tag/v0.0.6
+- Then you can use [this](https://github.com/mozer/comfyUI-vibevoice-exl3) repo (by Mozer) in comfyui.
+- multi-gpu (tensor parallel) mode is not implemented
+- vibevoice exl3 quants: https://huggingface.co/collections/tensorbanana/vibevoice-68cd1bac5766dc65e90380c1
+
 ExLlamaV3 is an inference library for running local LLMs on modern consumer GPUs. Headline features:
 
 - New [EXL3](doc/exl3.md) quantization format based on QTIP
